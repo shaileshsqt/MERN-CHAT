@@ -1,25 +1,81 @@
 import { Button } from "@chakra-ui/button";
 import { FormControl, FormLabel } from "@chakra-ui/form-control";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
+import { useNavigate } from "react-router-dom";
 import { VStack } from "@chakra-ui/layout";
 import { useState } from "react";
-// import { useToast } from "@chakra-ui/react";
-// import { useHistory } from "react-router-dom";
+import { ApiCall } from "../../commonService/ApiCall";
+
+import { useToast } from "@chakra-ui/react";
+
 // import { ChatState } from "../../Context/ChatProvider";
 
 const Login = () => {
   const [show, setShow] = useState(false);
   const handleClick = () => setShow(!show);
-//   const toast = useToast();
+  const navigate = useNavigate();
+  const toast = useToast();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [loading, setLoading] = useState(false);
 
-  //   const history = useHistory();
-  //   const { setUser } = ChatState();
+  // const { setUser } = ChatState();
 
   const submitHandler = async () => {
-    console.log("Submit");
+    setLoading(true);
+    if (!email || !password) {
+      toast({
+        title: "Please Fill all the Feilds",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+
+      let data = await ApiCall({
+        method: "POST",
+        url: `http://localhost:4001/api/user/login`,
+        body: { email: email, password: password },
+      });
+
+      // const data = await axios.post(
+      //   "/api/user/login",
+      //   { email, password },
+      //   config
+      // );
+
+      toast({
+        title: "Login Successful",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      // setUser(data);
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setLoading(false);
+      navigate("/chats");
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        description: error.response.data.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+    }
   };
 
   return (
