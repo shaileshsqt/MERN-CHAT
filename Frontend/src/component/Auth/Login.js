@@ -36,16 +36,13 @@ const Login = () => {
     }
 
     try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-        },
-      };
-
       let data = await ApiCall({
         method: "POST",
         url: `http://localhost:4001/api/user/login`,
         body: { email: email, password: password },
+        headers: {
+          "Content-type": "application/json",
+        },
       });
 
       // const data = await axios.post(

@@ -76,7 +76,7 @@ router.post("/groupChat", protect, async (req, res) => {
   }
 
   var users = JSON.parse(req.body.users);
-  console.log("Users", users);
+
 
   if (users.length < 2) {
     return res
@@ -87,11 +87,16 @@ router.post("/groupChat", protect, async (req, res) => {
   users.push(req.user);
 
   try {
+ 
     const groupChat = await Chat.create({
       chatName: req.body.name,
       users: users,
       isGroupChat: true,
       groupAdmin: req.user,
+      //
+      // { users: { $elemMatch: { $eq: userId } } },
+      // ],
+      // { "$set": { "users.$.mutedAudio": false } }
     });
 
     const fullGroupChat = await Chat.findOne({ _id: groupChat._id })

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
-const protect = async(req,res,next) => {
+const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -10,6 +10,7 @@ const protect = async(req,res,next) => {
   ) {
     try {
       token = req.headers.authorization.split(" ")[1];
+      console.log("TOKEN", token);
 
       //decodes token id
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -26,7 +27,7 @@ const protect = async(req,res,next) => {
   if (!token) {
     res.status(401);
     throw new Error("Not authorized, no token");
-  }  
-}
+  }
+};
 
 module.exports = { protect };

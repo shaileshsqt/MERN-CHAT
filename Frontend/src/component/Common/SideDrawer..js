@@ -21,16 +21,17 @@ import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { Avatar } from "@chakra-ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
 import { useToast } from "@chakra-ui/toast";
 import ChatLoading from "../ChatLoading";
 import { Spinner } from "@chakra-ui/spinner";
 import ProfileModal from "./ProfileModal";
-import NotificationBadge from "react-notification-badge";
-import { Effect } from "react-notification-badge";
+// import NotificationBadge from "react-notification-badge";
+// import { Effect } from "react-notification-badge";
+
 import { getSender } from "../../MainChatLogic/ChatLogic";
 import UserListItem from "../userAvatar/UserListItem";
 import { ChatState } from "../../Context/ChatProvider";
+import { ApiCall } from "../../commonService/ApiCall";
 
 function SideDrawer() {
   const [search, setSearch] = useState("");
@@ -71,13 +72,14 @@ function SideDrawer() {
     try {
       setLoading(true);
 
-      const config = {
+      let data = await ApiCall({
+        method: "GET",
+        url: `http://localhost:4001/api/user?search=${search}`,
         headers: {
+          "Content-type": "application/json",
           Authorization: `Bearer ${user.token}`,
         },
-      };
-
-      const { data } = await axios.get(`/api/user?search=${search}`, config);
+      });
 
       setLoading(false);
       setSearchResult(data);
@@ -94,17 +96,21 @@ function SideDrawer() {
   };
 
   const accessChat = async (userId) => {
-    console.log(userId);
+
 
     try {
       setLoadingChat(true);
-      const config = {
+      let data = await ApiCall({
+        method: "POST",
+        url: `http://localhost:4001/api/chat/accessChat`,
+        body: {
+          userId: userId,
+        },
         headers: {
           "Content-type": "application/json",
           Authorization: `Bearer ${user.token}`,
         },
-      };
-      const { data } = await axios.post(`/api/chat`, { userId }, config);
+      });
 
       if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
       setSelectedChat(data);
@@ -147,10 +153,11 @@ function SideDrawer() {
         <div>
           <Menu>
             <MenuButton p={1}>
-              <NotificationBadge
+              {/* <NotificationBadge
                 count={notification.length}
                 effect={Effect.SCALE}
-              />
+              /> */}
+              {notification.length}
               <BellIcon fontSize="2xl" m={1} />
             </MenuButton>
             <MenuList pl={2}>
@@ -163,9 +170,9 @@ function SideDrawer() {
                     setNotification(notification.filter((n) => n !== notif));
                   }}
                 >
-                  {/* {notif.chat.isGroupChat
-                    ? `New Message in ${notif.chat.chatName}` */}
-                  {/* // : `New Message from ${getSender(user, notif.chat.users)}`} */}
+                  {notif.chat.isGroupChat
+                    ? `New Message in ${notif.chat.chatName}`
+                    : `New Message from ${getSender(user, notif.chat.users)}`}
                 </MenuItem>
               ))}
             </MenuList>
@@ -207,14 +214,13 @@ function SideDrawer() {
             {loading ? (
               <ChatLoading />
             ) : (
-              searchResult?.map(
-                (user) => helllo
-                // <UserListItem
-                //   key={user._id}
-                //   user={user}
-                //   handleFunction={() => accessChat(user._id)}
-                // />
-              )
+              searchResult?.map((user) => (
+                <UserListItem
+                  key={user._id}
+                  user={user}
+                  handleFunction={() => accessChat(user._id)}
+                />
+              ))
             )}
             {loadingChat && <Spinner ml="auto" d="flex" />}
           </DrawerBody>

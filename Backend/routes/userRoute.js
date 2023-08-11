@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const generateToken = require("../config/generateToken");
 const User = require("../models/userModel");
+const { protect } = require("../middalware/authMiddlaware");
 
 // const registerUser = require("../controller/userControllers");
 // const userModel = require("../models/userModel");
@@ -13,7 +14,7 @@ router.post("/signUp", async (req, res) => {
     res.status(400);
     throw new Error("Please Enter all Fields");
   }
-  console.log("USER", User);
+
   // const userExist = await User.findOne({ email });
 
   // console.log("Find User", userExist);
@@ -54,7 +55,6 @@ router.post("/signUp", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  debugger;
   const { email, password } = req.body;
   const user = await User.findOne({ email });
 
@@ -71,6 +71,22 @@ router.post("/login", async (req, res) => {
     res.status(401);
     throw new Error("Invalid Email or Password");
   }
+});
+
+router.get("/", protect, async (req, res) => {
+  console.log("Search::", req.query.search);
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+  console.log("Send Response:::", users);
+  res.send(users);
 });
 
 module.exports = router;
